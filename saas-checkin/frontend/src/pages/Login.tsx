@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Wifi, Loader2 } from 'lucide-react'
 import { login } from '@/api/auth.api'
@@ -70,9 +70,18 @@ export function Login() {
           </button>
         </form>
 
-        <p className="text-center text-xs text-gray-400 mt-6">
-          Usuário demo: admin@demo.com / Demo@123
-        </p>
+        <div className="mt-6 space-y-2 text-center">
+          <p className="text-sm text-gray-500">
+            Não tem conta?{' '}
+            <Link to="/signup" className="text-blue-600 hover:underline font-medium">
+              Criar grátis
+            </Link>
+          </p>
+          <Link to="/forgot-password" className="block text-xs text-gray-400 hover:text-gray-600">
+            Esqueci minha senha
+          </Link>
+          <p className="text-xs text-gray-300">Demo: admin@demo.com / Demo@123</p>
+        </div>
       </div>
     </div>
   )

@@ -5,6 +5,11 @@ import rateLimit from 'express-rate-limit'
 import { env } from './config/env'
 import { errorHandler } from './middlewares/error-handler'
 import authRoutes from './modules/auth/auth.routes'
+import signupRoutes from './modules/auth/signup.routes'
+import passwordResetRoutes from './modules/auth/password-reset.routes'
+import exportRoutes from './modules/reports/reports.export.routes'
+import waWebhookRoutes from './modules/whatsapp/whatsapp.webhook.routes'
+import billingRoutes from './modules/billing/billing.routes'
 import clientRoutes from './modules/clients/clients.routes'
 import cardRoutes from './modules/cards/cards.routes'
 import deviceRoutes from './modules/devices/devices.routes'
@@ -27,6 +32,13 @@ app.get('/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().to
 
 const api = '/api/v1'
 app.use(`${api}/auth`, authRoutes)
+app.use(`${api}/auth`, signupRoutes)
+app.use(`${api}/auth`, passwordResetRoutes)
+app.use(`${api}/reports`, exportRoutes)
+app.use(`${api}/webhooks/whatsapp`, waWebhookRoutes)
+// Stripe needs raw body for signature verification
+app.use(`${api}/billing/webhook`, express.raw({ type: 'application/json' }))
+app.use(`${api}/billing`, billingRoutes)
 app.use(`${api}/clients`, clientRoutes)
 app.use(`${api}/cards`, cardRoutes)
 app.use(`${api}/devices`, deviceRoutes)

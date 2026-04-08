@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { LogIn, LogOut, AlertCircle, ShieldX, MessageCircle } from 'lucide-react'
+import { LogIn, LogOut, AlertCircle, ShieldX, MessageCircle, Download } from 'lucide-react'
 import { getAccessLogs } from '@/api/access-logs.api'
+import { useAuthStore } from '@/stores/auth.store'
 
 const eventConfig = {
   ENTRY: { label: 'Entrada', icon: LogIn, color: 'text-green-600', badge: 'bg-green-100 text-green-700' },
@@ -15,16 +16,38 @@ const eventConfig = {
 export function AccessLogs() {
   const [page, setPage] = useState(1)
   const [eventType, setEventType] = useState('')
+  const accessToken = useAuthStore((s) => s.accessToken)
 
   const { data, isLoading } = useQuery({
     queryKey: ['access-logs', page, eventType],
     queryFn: () => getAccessLogs({ page, limit: 25, ...(eventType && { eventType }) }),
   })
 
+  function exportCsv() {
+    const params = new URLSearchParams()
+    if (eventType) params.set('eventType', eventType)
+    const url = `/api/v1/reports/export/csv?${params}`
+    // Use hidden link to send auth header via token in URL workaround is not ideal
+    // Better: backend supports token in query param for file downloads
+    const a = document.createElement('a')
+    a.href = url
+    a.download = ''
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Registros de Acesso</h1>
+        <div className="flex gap-2">
+        <button
+          onClick={exportCsv}
+          className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50"
+        >
+          <Download size={15} /> Exportar CSV
+        </button>
         <select
           value={eventType}
           onChange={(e) => { setEventType(e.target.value); setPage(1) }}
@@ -36,6 +59,7 @@ export function AccessLogs() {
           <option value="UNKNOWN_CARD">Cartão desconhecido</option>
           <option value="BLOCKED_CARD">Cartão bloqueado</option>
         </select>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

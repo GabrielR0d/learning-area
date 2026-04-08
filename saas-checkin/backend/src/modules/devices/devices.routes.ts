@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { authenticate, requireRoles } from '../../middlewares/auth.middleware'
+import { checkPlanLimit } from '../../middlewares/plan-limits.middleware'
 import { prisma } from '../../config/database'
 import { UserRole } from '@prisma/client'
 
@@ -35,7 +36,7 @@ router.get('/:id', async (req, res, next) => {
 })
 
 // POST /devices
-router.post('/', requireRoles(UserRole.ADMIN, UserRole.SUPER_ADMIN), async (req, res, next) => {
+router.post('/', requireRoles(UserRole.ADMIN, UserRole.SUPER_ADMIN), checkPlanLimit('devices'), async (req, res, next) => {
   try {
     const tenantId = req.user!.tenantId!
     const { name, location } = req.body

@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   Wifi,
+  Sparkles,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -20,6 +21,7 @@ const navItems = [
   { to: '/access-logs', icon: ClipboardList, label: 'Registros' },
   { to: '/reports', icon: BarChart3, label: 'Relatórios' },
   { to: '/settings', icon: Settings, label: 'Configurações' },
+  { to: '/plans', icon: Sparkles, label: 'Planos' },
 ]
 
 export function Sidebar() {

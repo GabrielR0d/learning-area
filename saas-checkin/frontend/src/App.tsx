@@ -4,6 +4,8 @@ import { Toaster } from 'react-hot-toast'
 import { useAuthStore } from '@/stores/auth.store'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Login } from '@/pages/Login'
+import { Signup } from '@/pages/Signup'
+import { ForgotPassword } from '@/pages/ForgotPassword'
 import { Dashboard } from '@/pages/Dashboard'
 import { Clients } from '@/pages/Clients'
 import { Cards } from '@/pages/Cards'
@@ -11,6 +13,7 @@ import { Devices } from '@/pages/Devices'
 import { AccessLogs } from '@/pages/AccessLogs'
 import { Reports } from '@/pages/Reports'
 import { Settings } from '@/pages/Settings'
+import { Plans } from '@/pages/Plans'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +37,8 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route
             element={
               <ProtectedRoute>
@@ -48,6 +53,7 @@ export default function App() {
             <Route path="/access-logs" element={<AccessLogs />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/plans" element={<Plans />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
