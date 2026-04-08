@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  plan      Plan     @default(FREE)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users          User[]
+  clients        Client[]
+  cards          Card[]
+  devices        Device[]
+  accessLogs     AccessLog[]
+  whatsappConfig WhatsAppConfig?
+  settings       TenantSettings?
+}
+
+model TenantSettings {
+  id                   String   @id @default(cuid())
+  tenantId             String   @unique
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  notifyClientOnEntry  Boolean  @default(true)
+  notifyClientOnExit   Boolean  @default(true)
+  notifyAdminOnEntry   Boolean  @default(false)
+  adminPhoneNumber     String?
+  entryMessageTemplate String   @default("Olá {nome}! Sua entrada foi registrada em {data} às {hora}. ✅")
+  exitMessageTemplate  String   @default("Olá {nome}! Sua saída foi registrada em {data} às {hora}. 👋")
+  timezone             String   @default("America/Sao_Paulo")
+  updatedAt            DateTime @updatedAt
+}
+
+enum Plan {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+model User {
+  id           String    @id @default(cuid())
+  tenantId     String?
+  tenant       Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email        String
+  passwordHash String
+  name         String
+  role         UserRole  @default(OPERATOR)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([email])
+  @@index([tenantId])
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  OPERATOR
+  VIEWER
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String
+  email     String?
+  document  String?
+  photoUrl  String?
+  notes     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cards      Card[]
+  accessLogs AccessLog[]
+
+  @@index([tenantId])
+  @@index([tenantId, phone])
+}
+
+model Card {
+  id         String     @id @default(cuid())
+  tenantId   String
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientId   String?
+  client     Client?    @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  uid        String
+  label      String?
+  status     CardStatus @default(ACTIVE)
+  lastSeenAt DateTime?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  accessLogs AccessLog[]
+
+  @@unique([tenantId, uid])
+  @@index([tenantId])
+}
+
+enum CardStatus {
+  ACTIVE
+  BLOCKED
+  LOST
+}
+
+model Device {
+  id            String    @id @default(cuid())
+  tenantId      String
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name          String
+  location      String?
+  apiKey        String    @unique @default(cuid())
+  isOnline      Boolean   @default(false)
+  lastHeartbeat DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accessLogs AccessLog[]
+
+  @@index([tenantId])
+}
+
+model AccessLog {
+  id             String          @id @default(cuid())
+  tenantId       String
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientId       String?
+  client         Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  cardId         String?
+  card           Card?           @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  deviceId       String?
+  device         Device?         @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  cardUid        String
+  eventType      AccessEventType
+  direction      AccessDirection
+  whatsappSent   Boolean         @default(false)
+  whatsappSentAt DateTime?
+  whatsappError  String?
+  notes          String?
+  occurredAt     DateTime        @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, clientId])
+  @@index([tenantId, occurredAt])
+  @@index([tenantId, cardUid])
+}
+
+enum AccessEventType {
+  ENTRY
+  EXIT
+  UNKNOWN_CARD
+  BLOCKED_CARD
+}
+
+enum AccessDirection {
+  IN
+  OUT
+}
+
+model WhatsAppConfig {
+  id           String     @id @default(cuid())
+  tenantId     String     @unique
+  tenant       Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  provider     WaProvider @default(EVOLUTION)
+  instanceName String?
+  apiKey       String
+  baseUrl      String
+  isConnected  Boolean    @default(false)
+  qrCode       String?
+  updatedAt    DateTime   @updatedAt
+}
+
+enum WaProvider {
+  EVOLUTION
+  ZAPI
+}
