@@ -89,10 +89,10 @@ router.post('/:id/regenerate-key', requireRoles(UserRole.ADMIN, UserRole.SUPER_A
     const existing = await prisma.device.findFirst({ where: { id: req.params.id, tenantId } })
     if (!existing) return res.status(404).json({ error: 'Device not found' })
 
-    const { createId } = await import('@paralleldrive/cuid2')
+    const { randomUUID } = await import('crypto')
     const device = await prisma.device.update({
       where: { id: req.params.id },
-      data: { apiKey: createId() },
+      data: { apiKey: randomUUID() },
     })
     res.json({ apiKey: device.apiKey })
   } catch (err) {
